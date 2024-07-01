@@ -12,11 +12,18 @@ NUM_ORBS = 10
 MIN_ORB_SIZE = 10
 MAX_ORB_SIZE = 40
 
+orb_color_texture_paths = [
+    "resource/Orb_dark_blue.png",
+    "resource/Orb_light_blue.png",
+    "resource/Orb_Pink.png",
+    "resource/Orb_teal.png",
+]
+
 
 class MainGame:
     def __init__(self) -> None:
         self.window_dims = (1024, 768)
-        self.window_color = (150, 150, 150)
+        self.window_color = (40, 60, 60)
         self.window = pygame.display.set_mode(self.window_dims)
         self.quit_game = False
         self.clock = pygame.time.Clock()
@@ -35,7 +42,9 @@ class MainGame:
             randX = random.randint(0, self.window_dims[0])
             randY = random.randint(0, self.window_dims[1])
             randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
-            newOrb = Orb(randX, randY, randR)
+            randTexture = random.choice(orb_color_texture_paths)
+
+            newOrb = Orb(randX, randY, randR, randTexture)
             self.orbs.append(newOrb)
         self.play()
 
@@ -62,7 +71,9 @@ class MainGame:
                 randX = random.randint(0, self.window_dims[0])
                 randY = random.randint(0, self.window_dims[1])
                 randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
-                newOrb = Orb(randX, randY, randR)
+                randTexture = random.choice(orb_color_texture_paths)
+
+                newOrb = Orb(randX, randY, randR, randTexture)
                 self.orbs.append(newOrb)
 
     def render(self) -> None:
