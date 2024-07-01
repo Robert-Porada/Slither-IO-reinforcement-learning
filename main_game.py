@@ -3,10 +3,18 @@ import random
 
 from player import Player
 from orb import Orb
+from camera import Camera
 
+
+BACKGROUND_COLOR = (40, 60, 60)
+WINDOW_DIMS = (1024, 768)
 
 START_WIDTH = 50
 START_HEIGHT = 50
+
+PLAYER_START_POS_X = 0
+PLAYER_START_POS_Y = 0
+
 FPS = 60
 NUM_ORBS = 10
 MIN_ORB_SIZE = 10
@@ -22,17 +30,24 @@ orb_color_texture_paths = [
 
 class MainGame:
     def __init__(self) -> None:
-        self.window_dims = (1024, 768)
-        self.window_color = (40, 60, 60)
+        self.window_dims = WINDOW_DIMS
+        self.window_color = BACKGROUND_COLOR
         self.window = pygame.display.set_mode(self.window_dims)
         self.quit_game = False
         self.clock = pygame.time.Clock()
 
         self.player = Player(
-            0,
-            0,
+            PLAYER_START_POS_X,
+            PLAYER_START_POS_Y,
             START_WIDTH,
             START_HEIGHT,
+        )
+
+        self.camera = Camera(
+            PLAYER_START_POS_X,
+            PLAYER_START_POS_Y,
+            (self.player.w, self.player.h),
+            WINDOW_DIMS,
         )
 
         self.orbs = []
@@ -76,9 +91,12 @@ class MainGame:
                 newOrb = Orb(randX, randY, randR, randTexture)
                 self.orbs.append(newOrb)
 
+        # Updating camera
+        self.camera.update(self.player.player_hitbox.x, self.player.player_hitbox.y)
+
     def render(self) -> None:
         self.window.fill(self.window_color)
-        self.player.render(self.window)
+        self.player.render(self.window, self.camera)
         for orb in self.orbs:
-            orb.render(self.window)
+            orb.render(self.window, self.camera)
         pygame.display.update()

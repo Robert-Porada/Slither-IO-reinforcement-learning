@@ -3,13 +3,11 @@ import pygame
 
 class Player:
     def __init__(self, x: int, y: int, w: int, h: int) -> None:
-        self.x = x
-        self.y = y
         self.w = w
         self.h = h
-        self.player_hitbox = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.player_hitbox = pygame.Rect(x, y, w, h)
         image = pygame.image.load("resource/main_body.png")
-        self.texture = pygame.transform.scale(image, (self.w, self.h))
+        self.texture = pygame.transform.scale(image, (w, h))
 
         self.player_speed = 10
         self.boost_speed = 15
@@ -31,5 +29,7 @@ class Player:
         if keys[pygame.K_w]:
             self.player_hitbox.y -= self.player_speed
 
-    def render(self, window: object) -> None:
-        window.blit(self.texture, (self.player_hitbox.x, self.player_hitbox.y))
+    def render(self, window: object, camera: object) -> None:
+        window.blit(
+            self.texture, camera.translate(self.player_hitbox.x, self.player_hitbox.y)
+        )
