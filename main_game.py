@@ -4,6 +4,7 @@ import random
 from player import Player
 from orb import Orb
 from camera import Camera
+from enemy_ai import Enemy
 
 
 BACKGROUND_COLOR = (40, 60, 60)
@@ -20,7 +21,11 @@ NUM_ORBS = 10
 MIN_ORB_SIZE = 10
 MAX_ORB_SIZE = 40
 
+NUM_OF_ENEMIES = 1
+
+
 PLAYER_SEGMENT_FILE_PATH = "resource/main_body.png"
+ENEMY_SEGMENT_FILE_PATH = "resource/main_body_enemy.png"
 
 orb_color_texture_paths = [
     "resource/Orb_dark_blue.png",
@@ -54,6 +59,7 @@ class MainGame:
         )
 
         self.orbs = []
+        self.enemies = []
 
     def initialize(self):
         for i in range(NUM_ORBS):
@@ -64,6 +70,17 @@ class MainGame:
 
             newOrb = Orb(randX, randY, randR, randTexture)
             self.orbs.append(newOrb)
+
+        for i in range(NUM_OF_ENEMIES):
+            new_enemy = Enemy(
+                random.randint(100, WINDOW_DIMS[0]),
+                random.randint(100, WINDOW_DIMS[1]),
+                START_WIDTH,
+                START_HEIGHT,
+                ENEMY_SEGMENT_FILE_PATH,
+            )
+            self.enemies.append(new_enemy)
+
         self.play()
 
     def play(self) -> None:
@@ -94,6 +111,22 @@ class MainGame:
                 newOrb = Orb(randX, randY, randR, randTexture)
                 self.orbs.append(newOrb)
 
+            for enemy in self.enemies:
+                if orb.update(enemy):
+                    if orb in self.orbs:
+                        self.orbs.remove(orb)
+                    randX = random.randint(0, self.window_dims[0])
+                    randY = random.randint(0, self.window_dims[1])
+                    randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
+                    randTexture = random.choice(orb_color_texture_paths)
+
+                    newOrb = Orb(randX, randY, randR, randTexture)
+                    self.orbs.append(newOrb)
+
+        # Updating enemy events
+        for enemy in self.enemies:
+            enemy.update(self.orbs)
+
         # Updating camera
         self.camera.update(self.player.object_hitbox.x, self.player.object_hitbox.y)
 
@@ -102,4 +135,6 @@ class MainGame:
         self.player.render(self.window, self.camera)
         for orb in self.orbs:
             orb.render(self.window, self.camera)
+        for enemy in self.enemies:
+            enemy.render(self.window, self.camera)
         pygame.display.update()
