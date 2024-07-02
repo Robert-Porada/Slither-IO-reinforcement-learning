@@ -6,6 +6,7 @@ from segment import Segment
 
 MAX_COL_CHECK_DISCT = 1000
 
+
 class Player(Object):
     def __init__(self, x: int, y: int, w: int, h: int, texture_path: str) -> None:
         super().__init__(x, y, w, h, texture_path)
@@ -26,7 +27,7 @@ class Player(Object):
         self.segment_dis = self.w / 3
         self.segments = []
 
-    def update(self, enemies) -> bool:
+    def update(self, enemies, walls) -> bool:
         keys = pygame.key.get_pressed()
 
         # moving the player
@@ -69,13 +70,22 @@ class Player(Object):
                     self.segment_dis,
                     self.player_speed,
                 )
-        
+
+        # checking for collisions
+        # with enemy
         for enemy in enemies:
-            dist_to_enemy = ((enemy.object_hitbox.x - self.object_hitbox.x)**2 + (enemy.object_hitbox.y - self.object_hitbox.y)**2)**(1/2)
+            dist_to_enemy = (
+                (enemy.object_hitbox.x - self.object_hitbox.x) ** 2
+                + (enemy.object_hitbox.y - self.object_hitbox.y) ** 2
+            ) ** (1 / 2)
             if dist_to_enemy < MAX_COL_CHECK_DISCT:
                 for segment in enemy.segments:
                     if self.object_hitbox.colliderect(segment.object_hitbox):
                         return True
+        # with walls
+        for wall in walls:
+            if self.object_hitbox.colliderect(wall.object_hitbox):
+                return True
         return False
 
     def render(self, window: object, camera: object) -> None:

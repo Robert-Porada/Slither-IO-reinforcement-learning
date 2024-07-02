@@ -6,7 +6,7 @@ from orb import Orb
 from camera import Camera
 from enemy_ai import Enemy
 from font_render import FontRenderer
-
+from walls import Wall
 
 BACKGROUND_COLOR = (40, 60, 60)
 WINDOW_DIMS = (1024, 768)
@@ -24,9 +24,12 @@ MAX_ORB_SIZE = 40
 
 NUM_OF_ENEMIES = 3
 
+WALL_HEIGHT = 20
+WALL_PADDING = 70
 
 PLAYER_SEGMENT_FILE_PATH = "resource/main_body.png"
 ENEMY_SEGMENT_FILE_PATH = "resource/main_body_enemy.png"
+WALL_FILE_PATH = "resource/wall.png"
 
 orb_color_texture_paths = [
     "resource/Orb_dark_blue.png",
@@ -65,6 +68,37 @@ class MainGame:
         self.enemies = []
         self.font_renderer = FontRenderer()
 
+        # Creating walls
+        self.wall_top = Wall(
+            self.window_dims[0] * -1 - WALL_PADDING,
+            self.window_dims[1] * -1 - WALL_PADDING,
+            self.window_dims[0] * 2 + WALL_PADDING * 2,
+            WALL_HEIGHT,
+            WALL_FILE_PATH,
+        )
+        self.wall_right = Wall(
+            self.window_dims[0] * 1 + WALL_PADDING,
+            self.window_dims[1] * -1 - WALL_PADDING,
+            WALL_HEIGHT,
+            self.window_dims[1] * 2 + WALL_PADDING * 2 + WALL_HEIGHT,
+            WALL_FILE_PATH,
+        )
+        self.wall_left = Wall(
+            self.window_dims[0] * -1 - WALL_PADDING,
+            self.window_dims[1] * -1 - WALL_PADDING,
+            WALL_HEIGHT,
+            self.window_dims[1] * 2 + WALL_PADDING * 2 + WALL_HEIGHT,
+            WALL_FILE_PATH,
+        )
+        self.wall_bottom = Wall(
+            self.window_dims[0] * -1 - WALL_PADDING,
+            self.window_dims[1] * 1 + WALL_PADDING,
+            self.window_dims[0] * 2 + WALL_PADDING * 2,
+            WALL_HEIGHT,
+            WALL_FILE_PATH,
+        )
+        self.walls = [self.wall_top, self.wall_right, self.wall_left, self.wall_bottom]
+
     def initialize(self):
         for i in range(NUM_ORBS):
             randX = random.randint(self.window_dims[0] * -1, self.window_dims[0])
@@ -101,7 +135,7 @@ class MainGame:
                 self.quit_game = True
 
         # Updating player events
-        if self.player.update(self.enemies):
+        if self.player.update(self.enemies, self.walls):
             # if player dies:
             print("GAME OVER")
             print("RESTARTING GAME")
@@ -129,11 +163,15 @@ class MainGame:
             if orb.update(self.player):
                 self.orbs.remove(orb)
                 if len(self.orbs) <= NUM_ORBS:
-                    randX = random.randint(self.window_dims[0] * -1, self.window_dims[0])
-                    randY = random.randint(self.window_dims[1] * -1, self.window_dims[1])
+                    randX = random.randint(
+                        self.window_dims[0] * -1, self.window_dims[0]
+                    )
+                    randY = random.randint(
+                        self.window_dims[1] * -1, self.window_dims[1]
+                    )
                     randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
                     randTexture = random.choice(orb_color_texture_paths)
-    
+
                     newOrb = Orb(randX, randY, randR, randTexture)
                     self.orbs.append(newOrb)
 
@@ -188,5 +226,9 @@ class MainGame:
             orb.render(self.window, self.camera)
         for enemy in self.enemies:
             enemy.render(self.window, self.camera)
+        self.wall_top.render(self.window, self.camera)
+        self.wall_right.render(self.window, self.camera)
+        self.wall_left.render(self.window, self.camera)
+        self.wall_bottom.render(self.window, self.camera)
         self.font_renderer.render_font(self.window, self.player.score)
         pygame.display.update()
