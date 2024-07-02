@@ -27,7 +27,6 @@ class Player(Object):
         self.segments = []
 
     def update(self, enemies) -> bool:
-        print(self.score)
         keys = pygame.key.get_pressed()
 
         # moving the player

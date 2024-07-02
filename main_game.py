@@ -5,6 +5,7 @@ from player import Player
 from orb import Orb
 from camera import Camera
 from enemy_ai import Enemy
+from font_render import FontRenderer
 
 
 BACKGROUND_COLOR = (40, 60, 60)
@@ -21,7 +22,7 @@ NUM_ORBS = 100
 MIN_ORB_SIZE = 10
 MAX_ORB_SIZE = 40
 
-NUM_OF_ENEMIES = 1
+NUM_OF_ENEMIES = 3
 
 
 PLAYER_SEGMENT_FILE_PATH = "resource/main_body.png"
@@ -37,6 +38,8 @@ orb_color_texture_paths = [
 
 class MainGame:
     def __init__(self) -> None:
+        pygame.init()
+
         self.window_dims = WINDOW_DIMS
         self.window_color = BACKGROUND_COLOR
         self.window = pygame.display.set_mode(self.window_dims)
@@ -60,15 +63,12 @@ class MainGame:
 
         self.orbs = []
         self.enemies = []
+        self.font_renderer = FontRenderer()
 
     def initialize(self):
         for i in range(NUM_ORBS):
-            randX = random.randint(
-                self.window_dims[0] *  -1, self.window_dims[0] 
-            )
-            randY = random.randint(
-                self.window_dims[1] *  -1, self.window_dims[1] 
-            )
+            randX = random.randint(self.window_dims[0] * -1, self.window_dims[0])
+            randY = random.randint(self.window_dims[1] * -1, self.window_dims[1])
             randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
             randTexture = random.choice(orb_color_texture_paths)
 
@@ -128,33 +128,31 @@ class MainGame:
         for orb in self.orbs:
             if orb.update(self.player):
                 self.orbs.remove(orb)
-                randX = random.randint(
-                    self.window_dims[0]  * -1, self.window_dims[0] 
-                )
-                randY = random.randint(
-                    self.window_dims[1]  * -1, self.window_dims[1] 
-                )
-                randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
-                randTexture = random.choice(orb_color_texture_paths)
-
-                newOrb = Orb(randX, randY, randR, randTexture)
-                self.orbs.append(newOrb)
+                if len(self.orbs) <= NUM_ORBS:
+                    randX = random.randint(self.window_dims[0] * -1, self.window_dims[0])
+                    randY = random.randint(self.window_dims[1] * -1, self.window_dims[1])
+                    randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
+                    randTexture = random.choice(orb_color_texture_paths)
+    
+                    newOrb = Orb(randX, randY, randR, randTexture)
+                    self.orbs.append(newOrb)
 
             for enemy in self.enemies:
                 if orb.update(enemy):
                     if orb in self.orbs:
                         self.orbs.remove(orb)
-                    randX = random.randint(
-                        self.window_dims[0]  * -1, self.window_dims[0]
-                    )
-                    randY = random.randint(
-                        self.window_dims[1]  * -1, self.window_dims[1]
-                    )
-                    randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
-                    randTexture = random.choice(orb_color_texture_paths)
+                    if len(self.orbs) <= NUM_ORBS:
+                        randX = random.randint(
+                            self.window_dims[0] * -1, self.window_dims[0]
+                        )
+                        randY = random.randint(
+                            self.window_dims[1] * -1, self.window_dims[1]
+                        )
+                        randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
+                        randTexture = random.choice(orb_color_texture_paths)
 
-                    newOrb = Orb(randX, randY, randR, randTexture)
-                    self.orbs.append(newOrb)
+                        newOrb = Orb(randX, randY, randR, randTexture)
+                        self.orbs.append(newOrb)
 
         # Updating enemy events
         for i, enemy in enumerate(self.enemies):
@@ -190,4 +188,5 @@ class MainGame:
             orb.render(self.window, self.camera)
         for enemy in self.enemies:
             enemy.render(self.window, self.camera)
+        self.font_renderer.render_font(self.window, self.player.score)
         pygame.display.update()
