@@ -17,7 +17,7 @@ PLAYER_START_POS_X = 0
 PLAYER_START_POS_Y = 0
 
 FPS = 60
-NUM_ORBS = 10
+NUM_ORBS = 100
 MIN_ORB_SIZE = 10
 MAX_ORB_SIZE = 40
 
@@ -63,8 +63,12 @@ class MainGame:
 
     def initialize(self):
         for i in range(NUM_ORBS):
-            randX = random.randint(0, self.window_dims[0])
-            randY = random.randint(0, self.window_dims[1])
+            randX = random.randint(
+                self.window_dims[0] *  -1, self.window_dims[0] 
+            )
+            randY = random.randint(
+                self.window_dims[1] *  -1, self.window_dims[1] 
+            )
             randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
             randTexture = random.choice(orb_color_texture_paths)
 
@@ -97,14 +101,39 @@ class MainGame:
                 self.quit_game = True
 
         # Updating player events
-        self.player.update()
+        if self.player.update(self.enemies):
+            # if player dies:
+            print("GAME OVER")
+            print("RESTARTING GAME")
+            for segment in self.player.segments:
+                segment_x = segment.object_hitbox.x
+                segment_y = segment.object_hitbox.y
+                randTexture = random.choice(orb_color_texture_paths)
+                new_orb = Orb(segment_x, segment_y, 40, randTexture)
+                self.orbs.append(new_orb)
+            del self.player.segments
+            self.player.score = 0
+            del self.player
+
+            # create a new player
+            self.player = Player(
+                PLAYER_START_POS_X,
+                PLAYER_START_POS_Y,
+                START_WIDTH,
+                START_HEIGHT,
+                PLAYER_SEGMENT_FILE_PATH,
+            )
 
         # Updating orb events
         for orb in self.orbs:
             if orb.update(self.player):
                 self.orbs.remove(orb)
-                randX = random.randint(0, self.window_dims[0])
-                randY = random.randint(0, self.window_dims[1])
+                randX = random.randint(
+                    self.window_dims[0]  * -1, self.window_dims[0] 
+                )
+                randY = random.randint(
+                    self.window_dims[1]  * -1, self.window_dims[1] 
+                )
                 randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
                 randTexture = random.choice(orb_color_texture_paths)
 
@@ -115,8 +144,12 @@ class MainGame:
                 if orb.update(enemy):
                     if orb in self.orbs:
                         self.orbs.remove(orb)
-                    randX = random.randint(0, self.window_dims[0])
-                    randY = random.randint(0, self.window_dims[1])
+                    randX = random.randint(
+                        self.window_dims[0]  * -1, self.window_dims[0]
+                    )
+                    randY = random.randint(
+                        self.window_dims[1]  * -1, self.window_dims[1]
+                    )
                     randR = random.randint(MIN_ORB_SIZE, MAX_ORB_SIZE)
                     randTexture = random.choice(orb_color_texture_paths)
 
@@ -124,8 +157,28 @@ class MainGame:
                     self.orbs.append(newOrb)
 
         # Updating enemy events
-        for enemy in self.enemies:
-            enemy.update(self.orbs)
+        for i, enemy in enumerate(self.enemies):
+            if enemy.update(self.orbs, self.player):
+                # if enemy dies:
+                print("ENEMY KILLED")
+                self.player.score += 100
+                for segment in enemy.segments:
+                    segment_x = segment.object_hitbox.x
+                    segment_y = segment.object_hitbox.y
+                    randTexture = random.choice(orb_color_texture_paths)
+                    new_orb = Orb(segment_x, segment_y, 40, randTexture)
+                    self.orbs.append(new_orb)
+                del enemy
+                self.enemies.pop(i)
+                # add a new enemy
+                new_enemy = Enemy(
+                    random.randint(100, WINDOW_DIMS[0]),
+                    random.randint(100, WINDOW_DIMS[1]),
+                    START_WIDTH,
+                    START_HEIGHT,
+                    ENEMY_SEGMENT_FILE_PATH,
+                )
+                self.enemies.append(new_enemy)
 
         # Updating camera
         self.camera.update(self.player.object_hitbox.x, self.player.object_hitbox.y)

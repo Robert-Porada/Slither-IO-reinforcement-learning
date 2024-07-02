@@ -4,6 +4,7 @@ import numpy as np
 from object import Object
 from segment import Segment
 
+MAX_COL_CHECK_DISCT = 1000
 
 class Enemy(Object):
     def __init__(self, x: int, y: int, w: int, h: int, texture_path: str) -> None:
@@ -21,7 +22,7 @@ class Enemy(Object):
         self.segment_dis = self.w / 3
         self.segments = []
 
-    def update(self, orbs) -> None:
+    def update(self, orbs, player) -> None:
         # find closest orb
         closest_orb = orbs[0]
         dist = float("INFINITY")
@@ -69,6 +70,13 @@ class Enemy(Object):
                     self.segment_dis,
                     self.player_speed,
                 )
+        # Checking colision with plater
+        dist_to_player = ((player.object_hitbox.x - self.object_hitbox.x)**2 + (player.object_hitbox.y - self.object_hitbox.y)**2)**(1/2)
+        if dist_to_player < MAX_COL_CHECK_DISCT:
+            for segment in player.segments:
+                if self.object_hitbox.colliderect(segment.object_hitbox):
+                    return True
+        return False
 
     def render(self, window: object, camera: object) -> None:
         window.blit(
