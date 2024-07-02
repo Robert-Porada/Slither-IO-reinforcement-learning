@@ -1,17 +1,14 @@
 import pygame
+from object import Object
 
-class Orb:
-    def __init__(self, x: int, y: int, r: int, texture_path) -> None:
+
+class Orb(Object):
+    def __init__(self, x: int, y: int, r: int, texture_path: str) -> None:
+        super().__init__(x, y, r, r, texture_path)
         self.r = r
-        self.orb_hitbox = pygame.Rect(x, y, r, r)
-        image = pygame.image.load(texture_path)
-        self.texture = pygame.transform.scale(image, (r, r))
 
     def update(self, player) -> bool:
-        if self.orb_hitbox.colliderect(player.player_hitbox):
+        if self.object_hitbox.colliderect(player.object_hitbox):
             player.score += self.r
             return True
         return False
-
-    def render(self, window: object, camera: object) -> None:
-        window.blit(self.texture, camera.translate(self.orb_hitbox.x, self.orb_hitbox.y))

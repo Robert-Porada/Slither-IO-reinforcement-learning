@@ -20,6 +20,8 @@ NUM_ORBS = 10
 MIN_ORB_SIZE = 10
 MAX_ORB_SIZE = 40
 
+PLAYER_SEGMENT_FILE_PATH = "resource/main_body.png"
+
 orb_color_texture_paths = [
     "resource/Orb_dark_blue.png",
     "resource/Orb_light_blue.png",
@@ -41,6 +43,7 @@ class MainGame:
             PLAYER_START_POS_Y,
             START_WIDTH,
             START_HEIGHT,
+            PLAYER_SEGMENT_FILE_PATH,
         )
 
         self.camera = Camera(
@@ -92,7 +95,7 @@ class MainGame:
                 self.orbs.append(newOrb)
 
         # Updating camera
-        self.camera.update(self.player.player_hitbox.x, self.player.player_hitbox.y)
+        self.camera.update(self.player.object_hitbox.x, self.player.object_hitbox.y)
 
     def render(self) -> None:
         self.window.fill(self.window_color)
