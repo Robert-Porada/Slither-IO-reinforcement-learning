@@ -17,7 +17,7 @@ START_HEIGHT = 50
 PLAYER_START_POS_X = 0
 PLAYER_START_POS_Y = 0
 
-FPS = 60
+FPS = 120
 NUM_ORBS = 100
 MIN_ORB_SIZE = 10
 MAX_ORB_SIZE = 40
@@ -99,7 +99,25 @@ class MainGame:
         )
         self.walls = [self.wall_top, self.wall_right, self.wall_left, self.wall_bottom]
 
+        self.action = [0, 0, 0, 0]
+        self.game_over = False
+        self.player_score_before_death = 0
+
     def initialize(self):
+        self.player.frame_iteration = 0
+        self.player.score = 0
+
+        if self.player:
+            del self.player
+        self.player = Player(
+            PLAYER_START_POS_X,
+            PLAYER_START_POS_Y,
+            START_WIDTH,
+            START_HEIGHT,
+            PLAYER_SEGMENT_FILE_PATH,
+        )
+
+        self.orbs.clear()
         for i in range(NUM_ORBS):
             randX = random.randint(self.window_dims[0] * -1, self.window_dims[0])
             randY = random.randint(self.window_dims[1] * -1, self.window_dims[1])
@@ -109,6 +127,7 @@ class MainGame:
             newOrb = Orb(randX, randY, randR, randTexture)
             self.orbs.append(newOrb)
 
+        self.enemies.clear()
         for i in range(NUM_OF_ENEMIES):
             new_enemy = Enemy(
                 random.randint(100, WINDOW_DIMS[0]),
@@ -119,14 +138,14 @@ class MainGame:
             )
             self.enemies.append(new_enemy)
 
-        self.play()
-
-    def play(self) -> None:
-        while self.quit_game == False:
-            self.update()
+    def play(self, action) -> None:
+        if self.quit_game == False:
+            self.update(action)
             self.render()
+        return self.player.reward, self.game_over, self.player.score
 
-    def update(self) -> None:
+    def update(self, action) -> None:
+        self.game_over = False
         self.clock.tick(FPS)
 
         # Updating window events
@@ -135,28 +154,20 @@ class MainGame:
                 self.quit_game = True
 
         # Updating player events
-        if self.player.update(self.enemies, self.walls):
+        if self.player.update(self.enemies, self.walls, action, self.orbs):
             # if player dies:
             print("GAME OVER")
             print("RESTARTING GAME")
-            for segment in self.player.segments:
-                segment_x = segment.object_hitbox.x
-                segment_y = segment.object_hitbox.y
-                randTexture = random.choice(orb_color_texture_paths)
-                new_orb = Orb(segment_x, segment_y, 40, randTexture)
-                self.orbs.append(new_orb)
-            del self.player.segments
-            self.player.score = 0
-            del self.player
-
-            # create a new player
-            self.player = Player(
-                PLAYER_START_POS_X,
-                PLAYER_START_POS_Y,
-                START_WIDTH,
-                START_HEIGHT,
-                PLAYER_SEGMENT_FILE_PATH,
-            )
+            # Not needed for ai
+            # for segment in self.player.segments:
+            #     segment_x = segment.object_hitbox.x
+            #     segment_y = segment.object_hitbox.y
+            #     randTexture = random.choice(orb_color_texture_paths)
+            #     new_orb = Orb(segment_x, segment_y, 40, randTexture)
+            #     self.orbs.append(new_orb)
+            # del self.player.segments
+            self.game_over = True
+            # self.initialize()
 
         # Updating orb events
         for orb in self.orbs:

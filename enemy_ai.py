@@ -17,6 +17,7 @@ class Enemy(Object):
         self.movement_vector = [0, -1]
 
         self.score = 0
+        self.reward = 0
 
         self.min_snake_len = 4
         self.segment_dis = self.w / 3
@@ -75,6 +76,7 @@ class Enemy(Object):
         if dist_to_player < MAX_COL_CHECK_DISCT:
             for segment in player.segments:
                 if self.object_hitbox.colliderect(segment.object_hitbox):
+                    player.reward += 10
                     return True
         return False
 

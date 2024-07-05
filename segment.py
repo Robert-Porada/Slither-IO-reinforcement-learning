@@ -6,6 +6,8 @@ from object import Object
 class Segment(Object):
     def __init__(self, x, y, w, h, texture_path):
         super().__init__(x, y, w, h, texture_path)
+        self.w = w
+        self.h = h
     
     def update(self, target_pos, segment_dis, speed):
         direction = [target_pos[0] - self.object_hitbox.x, target_pos[1] - self.object_hitbox.y]
