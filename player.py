@@ -17,7 +17,7 @@ class Player(Object):
         self.w = w
         self.h = h
 
-        self.angle_delta = np.pi / 50
+        self.angle_delta = np.pi / 25
         self.movement_angle = np.pi * 3 / 2
 
         self.player_speed = 5

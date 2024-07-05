@@ -6,8 +6,8 @@ from main_game import MainGame
 from model import Linear_Qnet, QTrainer
 from plot_helper import plot
 
-MAX_MEMORY = 100_000
-BATCH_SIZE = 1000
+MAX_MEMORY = 1_000_000
+BATCH_SIZE = 128
 
 LR = 0.001
 
@@ -18,7 +18,7 @@ class Agent:
     def __init__(self) -> None:
         self.number_of_games = 0
         self.epsilon = 0
-        self.gamma = 0.9  # Discount rate
+        self.gamma = 0.99  # Discount rate
         self.memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_Qnet(9, 256, 4)
         self.trainer = QTrainer(self.model, LR, self.gamma)
@@ -40,7 +40,6 @@ class Agent:
         else:
             state.append(0)
             state.append(0)
-
 
         # X and Y positions of closest enemy segment [2 values]
         closest_enemy_segments_pos = game.player.closest_enemy_segments_pos
@@ -88,9 +87,9 @@ class Agent:
 
     def get_action(self, state):
         # Exploration exploitations tradeoff
-        self.epsilon = 300 - self.number_of_games
+        self.epsilon = 500 - self.number_of_games
         final_move = [0, 0, 0, 0]
-        if random.randint(0, 500) < self.epsilon:
+        if random.randint(0, 700) < self.epsilon:
             move = random.randint(0, 2)
             final_move[move] = 1
             final_move[3] = random.randint(0, 1)
@@ -102,6 +101,16 @@ class Agent:
             if prediction[3] > 0.5:
                 final_move[3] = 1
 
+        return final_move
+
+    def get_action_from_model_only(self, state, model):
+        final_move = [0, 0, 0, 0]
+        state0 = torch.tensor(state, dtype=torch.float)
+        prediction = self.model(state0)
+        move = torch.argmax(prediction[:3]).item()
+        final_move[move] = 1
+        if prediction[3] > 0.5:
+            final_move[3] = 1
         return final_move
 
 
@@ -122,7 +131,6 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-
         reward, game_over, score = game.play(final_move)
 
         state_new = agent.get_state(game)
@@ -151,5 +159,41 @@ def train():
             plot(plot_scores, plot_mean_scores)
 
 
+def play(model_path):
+    plot_scores = []
+    plot_mean_scores = []
+    total_score = 0
+    record = 0
+    model = Linear_Qnet(9, 256, 4)
+    model.load(model_path)
+    agent = Agent()
+    game = MainGame()
+    game.initialize()
+    while True:
+        # get old state
+        state_old = agent.get_state(game)
+
+        # get move based on state
+        final_move = agent.get_action_from_model_only(state_old, model)
+
+        # perform move and get new state
+        reward, game_over, score = game.play(final_move)
+
+        if game_over:
+            # train the long memory, plot the result
+            game.initialize()
+            agent.number_of_games += 1
+            if score > record:
+                record = score
+            print("Game", agent.number_of_games, "Score", score, "Record:", record)
+
+            plot_scores.append(score)
+            total_score += score
+            mean_score = total_score / agent.number_of_games
+            plot_mean_scores.append(mean_score)
+            plot(plot_scores, plot_mean_scores)
+
+
 if __name__ == "__main__":
-    train()
+    # train()
+    play(model_path="model/model_9_256_256_4.pth")
